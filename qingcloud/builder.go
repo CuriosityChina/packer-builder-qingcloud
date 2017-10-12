@@ -2,6 +2,7 @@ package qingcloud
 
 import (
 	"github.com/hashicorp/packer/common"
+	"github.com/hashicorp/packer/helper/communicator"
 	"github.com/hashicorp/packer/packer"
 	"github.com/mitchellh/multistep"
 	"github.com/yunify/qingcloud-sdk-go/config"
@@ -46,10 +47,29 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 	state.Put("ui", ui)
 
 	// Build
+	// create ssh key pair
+	// create instance
+	// create ip
+	// attach ip
+	// ssh ...
+	// stop instance
+	// capture image
+	// un-attach ip
+	// delete ip
+	// delete instance
+	// delete key pair
 	steps := []multistep.Step{
+		new(stepEIP),
+		new(stepKeypair),
 		new(stepCreateInstance),
+		new(stepAttachEIP),
 		// Run
-		// ...
+		&communicator.StepConnect{
+			Config:    &b.config.Comm,
+			Host:      commHost,
+			SSHConfig: sshConfig,
+		},
+		new(common.StepProvision),
 	}
 
 	// Run
