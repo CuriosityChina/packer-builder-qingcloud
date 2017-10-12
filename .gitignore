@@ -14,3 +14,4 @@
 .glide/
 
 packer-qingcloud-builder
+packer/local_test
