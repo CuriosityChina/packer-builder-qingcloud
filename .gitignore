@@ -13,5 +13,5 @@
 # Project-local glide cache, RE: https://github.com/Masterminds/glide/issues/736
 .glide/
 
-packer-qingcloud-builder
+packer-builder-qingcloud
 packer/local_test

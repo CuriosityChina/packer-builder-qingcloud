@@ -1,1 +1,1 @@
-# packer-qingcloud-builder [![Build Status](https://travis-ci.org/CuriosityChina/packer-qingcloud-builder.svg?branch=master)](https://travis-ci.org/CuriosityChina/packer-qingcloud-builder)
+# packer-builder-qingcloud [![Build Status](https://travis-ci.org/CuriosityChina/packer-builder-qingcloud.svg?branch=master)](https://travis-ci.org/CuriosityChina/packer-builder-qingcloud)
