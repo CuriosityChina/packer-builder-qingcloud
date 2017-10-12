@@ -4,6 +4,7 @@ import (
 	"github.com/hashicorp/packer/common"
 	"github.com/hashicorp/packer/helper/communicator"
 	"github.com/hashicorp/packer/helper/config"
+	"github.com/hashicorp/packer/packer"
 	"github.com/hashicorp/packer/template/interpolate"
 	"os"
 )
@@ -51,9 +52,12 @@ func NewConfig(raws ...interface{}) (*Config, []string, error) {
 	warnings := []string{}
 
 	err := config.Decode(c, &config.DecodeOpts{
-		Interpolate: true,
+		Interpolate:        true,
+		InterpolateContext: &c.ctx,
 		InterpolateFilter: &interpolate.RenderFilter{
-			Exclude: []string{},
+			Exclude: []string{
+				"run_command",
+			},
 		},
 	}, raws...)
 	if err != nil {
@@ -69,6 +73,13 @@ func NewConfig(raws ...interface{}) (*Config, []string, error) {
 	}
 
 	// ...
+	var errs *packer.MultiError
+	if es := c.Comm.Prepare(&c.ctx); len(es) > 0 {
+		errs = packer.MultiErrorAppend(errs, es...)
+	}
+	if errs != nil && len(errs.Errors) > 0 {
+		return nil, nil, errs
+	}
 
 	return c, warnings, nil
 }

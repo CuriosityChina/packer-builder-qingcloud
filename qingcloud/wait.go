@@ -26,6 +26,7 @@ func waitForInstanceState(
 			})
 
 			if err != nil {
+				log.Printf("%s", err)
 				result <- err
 				return
 			}
@@ -77,6 +78,7 @@ func waitForEIPState(
 			})
 
 			if err != nil {
+				log.Printf("%s", err)
 				result <- err
 				return
 			}

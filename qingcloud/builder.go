@@ -10,6 +10,8 @@ import (
 	"log"
 )
 
+const BuilderId = "pearkes.qingcloud-instance"
+
 var _ packer.Builder = &Builder{}
 
 // Builder ...
@@ -25,11 +27,13 @@ func (b *Builder) Prepare(raws ...interface{}) ([]string, error) {
 		return warnings, errs
 	}
 	b.config = *c
+
 	return nil, nil
 }
 
 // Run ...
 func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packer.Artifact, error) {
+
 	cfg, err := config.New(b.config.APIKey, b.config.APISecret)
 	if err != nil {
 		return nil, err
@@ -45,19 +49,9 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 	state.Put("config", b.config)
 	state.Put("client", client)
 	state.Put("ui", ui)
+	state.Put("hook", hook)
 
-	// Build
-	// create ssh key pair
-	// create instance
-	// create ip
-	// attach ip
-	// ssh ...
-	// stop instance
-	// capture image
-	// un-attach ip
-	// delete ip
-	// delete instance
-	// delete key pair
+	// Steps
 	steps := []multistep.Step{
 		new(stepEIP),
 		new(stepKeypair),
@@ -70,14 +64,31 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 			SSHConfig: sshConfig,
 		},
 		new(common.StepProvision),
+		new(stepCreateImage),
 	}
 
 	// Run
 	b.runner = common.NewRunner(steps, b.config.PackerConfig, ui)
 	b.runner.Run(state)
 
+	// Report any errors.
+	if rawErr, ok := state.GetOk("error"); ok {
+		return nil, rawErr.(error)
+	}
+	if _, ok := state.GetOk("final_image_name"); !ok {
+		log.Println("Failed to find image in state. Bug?")
+		return nil, nil
+	}
+
 	// Output
-	return nil, nil
+	artifact := &Artifact{
+		imageName: state.Get("final_image_name").(string),
+		imageID:   state.Get("final_image_id").(string),
+		zone:      b.config.Zone,
+		service:   client,
+	}
+
+	return artifact, nil
 }
 
 // Cancel ...

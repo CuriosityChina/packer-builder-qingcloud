@@ -37,7 +37,10 @@ func (s *stepEIP) Run(state multistep.StateBag) multistep.StepAction {
 	}
 	state.Put("eip_id", *ip.EIPs[0])
 
-	waitForEIPState("available", *ip.EIPs[0], ipClient, 30*time.Second)
+	if err = waitForEIPState("available", *ip.EIPs[0], ipClient, 30*time.Second); err != nil {
+		ui.Error(err.Error())
+		return multistep.ActionHalt
+	}
 
 	return multistep.ActionContinue
 }
@@ -55,7 +58,9 @@ func (s *stepEIP) Cleanup(state multistep.StateBag) {
 		return
 	}
 
-	waitForEIPState("available", ipID, ipClient, 30*time.Second)
+	if err := waitForEIPState("available", ipID, ipClient, 30*time.Second); err != nil {
+		ui.Error(err.Error())
+	}
 
 	_, err = ipClient.ReleaseEIPs(&qc.ReleaseEIPsInput{
 		EIPs: []*string{qc.String(ipID)},

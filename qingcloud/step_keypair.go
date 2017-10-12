@@ -31,7 +31,6 @@ func (s *stepKeypair) Run(state multistep.StateBag) multistep.StepAction {
 
 	state.Put("keypair_id", *kp.KeyPairID)
 	state.Put("ssh_private_key", *kp.PrivateKey)
-
 	return multistep.ActionContinue
 }
 

@@ -23,6 +23,7 @@ func (s *stepCreateInstance) Run(state multistep.StateBag) multistep.StepAction 
 	instanceClient, err := client.Instance(c.Zone)
 	if err != nil {
 		ui.Error(err.Error())
+		return multistep.ActionHalt
 	}
 
 	ins, err := instanceClient.RunInstances(&qc.RunInstancesInput{
@@ -44,7 +45,10 @@ func (s *stepCreateInstance) Run(state multistep.StateBag) multistep.StepAction 
 
 	state.Put("instance_id", *ins.Instances[0])
 
-	waitForInstanceState("running", *ins.Instances[0], instanceClient, 30*time.Second)
+	if err := waitForInstanceState("running", *ins.Instances[0], instanceClient, 30*time.Second); err != nil {
+		ui.Error(err.Error())
+		return multistep.ActionHalt
+	}
 
 	return multistep.ActionContinue
 }
@@ -59,6 +63,7 @@ func (s *stepCreateInstance) Cleanup(state multistep.StateBag) {
 	instanceClient, err := client.Instance(c.Zone)
 	if err != nil {
 		ui.Error(err.Error())
+		return
 	}
 
 	_, err = instanceClient.TerminateInstances(&qc.TerminateInstancesInput{
@@ -68,7 +73,9 @@ func (s *stepCreateInstance) Cleanup(state multistep.StateBag) {
 		ui.Error(err.Error())
 		return
 	}
-	waitForInstanceState("terminated", insID, instanceClient, 30*time.Second)
+	if err := waitForInstanceState("terminated", insID, instanceClient, 30*time.Second); err != nil {
+		ui.Error(err.Error())
+	}
 
 	ui.Say("Instance terminate!")
 }
